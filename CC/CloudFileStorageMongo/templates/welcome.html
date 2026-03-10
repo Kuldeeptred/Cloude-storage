@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome — Cloud File Storage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='welcode.css') }}">
+    <meta name="description" content="Secure, fast and easy cloud file management">
+    <style>
+        /* small override to ensure page bg blends nicely */
+        body { background: linear-gradient(180deg, #f8fafc, #f1f5f9); }
+    </style>
+</head>
+<body>
+    <main class="welcome-container" id="welcomeContainer" role="main">
+        <header class="welcome-header">
+            <div class="brand">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="2" fill="#ffffff" opacity="0.06"></rect>
+                    <path d="M6 2v6H2" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 3h-6v18h6V3z" fill="#ffffff" opacity="0.04"></path>
+                </svg>
+                <span style="font-weight:700;margin-left:10px;color:#0f172a;font-size:1.05rem">Cloud File Storage</span>
+            </div>
+            <nav>
+                <span class="welcome-user">Signed in as <strong>{{ user }}</strong></span>
+                <a href="{{ url_for('logout') }}" class="link-logout">Logout</a>
+            </nav>
+        </header>
+
+        <section class="welcome-hero">
+            <div class="hero-inner">
+                <h1 class="hero-title">Secure. Fast. Effortless File Storage.</h1>
+                <p class="hero-sub">Manage, share and protect your files with a modern, reliable cloud platform built for teams and individuals.</p>
+
+                <div class="welcome-actions">
+                    <a class="btn-welcome" href="{{ url_for('index') }}">Go to Dashboard</a>
+                    <a class="btn-ghost" href="{{ url_for('index') }}">Skip & View Files</a>
+                </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+                <!-- subtle clouds / shapes for visual interest -->
+                <svg width="420" height="240" viewBox="0 0 420 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="g1" x1="0" x2="1">
+                            <stop offset="0" stop-color="#4f46e5" stop-opacity="0.95"/>
+                            <stop offset="1" stop-color="#06b6d4" stop-opacity="0.9"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="0" y="0" width="420" height="240" rx="20" fill="url(#g1)" opacity="0.14"></rect>
+                </svg>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="features-intro">Key Features</div>
+            <div class="features">
+                <article class="feature-card">
+                    <div class="feature-icon"> 
+                        <!-- upload icon -->
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v10" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 7l4-4 4 4" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="13" width="18" height="6" rx="2" stroke="#0f172a" stroke-opacity="0.06"/></svg>
+                    </div>
+                    <h3>Upload Files</h3>
+                    <p>Drag & drop or browse to upload files quickly — bulk upload supported with instant feedback.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <!-- folder icon -->
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7h6l2 2h8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#06b6d4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>Create Folders</h3>
+                    <p>Organize files with nested folders, drag & drop to move files across folders and to root.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <!-- lock icon -->
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="10" rx="2" stroke="#ef4444" stroke-width="1.4"/><path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="#ef4444" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>Secure Storage</h3>
+                    <p>Per-user permissions and quotas keep your data safe — built with privacy and reliability in mind.</p>
+                </article>
+            </div>
+        </section>
+
+        <footer style="margin-top:36px;text-align:center;color:#94a3b8;font-size:0.95rem">© Cloud File Storage &nbsp;•&nbsp; All rights reserved.</footer>
+    </main>
+
+    <script>
+    // entrance animation on page load and exit animation on navigation
+    document.addEventListener('DOMContentLoaded', function(){
+            var container = document.getElementById('welcomeContainer');
+            if (!container) return;
+            // add animate-in to hero and cards
+            setTimeout(function(){
+                    container.classList.add('welcome-animate-in');
+                    var hero = container.querySelector('.welcome-hero');
+                    if (hero) hero.classList.add('welcome-animate-in');
+                    var cards = container.querySelectorAll('.feature-card');
+                    cards.forEach(function(c,i){ setTimeout(function(){ c.classList.add('welcome-animate-in'); }, 120 + i*80); });
+            }, 60);
+
+            function navigateWithAnimation(e){
+                    e = e || window.event;
+                    var link = e.currentTarget;
+                    var href = link.getAttribute('href');
+                    if (!href) return true;
+                    e.preventDefault();
+                    container.classList.remove('welcome-animate-in');
+                    container.classList.add('welcome-animate-out');
+                    var hero = container.querySelector('.welcome-hero');
+                    if (hero) { hero.classList.remove('welcome-animate-in'); hero.classList.add('welcome-animate-out'); }
+                    var done = false;
+                    function onEnd(){ if (done) return; done = true; window.location = href; }
+                    container.addEventListener('animationend', onEnd);
+                    setTimeout(onEnd, 700);
+                    return false;
+            }
+
+            var goBtns = document.querySelectorAll('.btn-welcome, .btn-ghost');
+            goBtns.forEach(function(b){ b.addEventListener('click', navigateWithAnimation); });
+    });
+    </script>
+</body>
+</html>

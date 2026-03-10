@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>File Viewer - Cloud Storage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        .viewer-navbar {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .navbar-left {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .file-info {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .file-name {
+            font-size: 16px;
+            font-weight: 500;
+            word-break: break-all;
+            max-width: 400px;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .download-btn, .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #10b981;
+        }
+
+        .close-btn:hover {
+            background: #ef4444;
+        }
+
+        /* Viewer Container */
+        .viewer-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            overflow: auto;
+        }
+
+        .viewer-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Image Viewer */
+        .image-viewer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+            padding: 40px;
+        }
+
+        .image-viewer img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        /* PDF Viewer */
+        .pdf-viewer {
+            display: flex;
+            flex-direction: column;
+            height: 800px;
+        }
+
+        .pdf-controls {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: #f3f4f6;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .pdf-controls button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+
+        .pdf-controls button:hover {
+            background: #2563eb;
+        }
+
+        .pdf-controls button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .pdf-page-info {
+            font-size: 13px;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+
+        .pdf-zoom-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        #pdfCanvas {
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #e5e7eb;
+        }
+
+        .pdf-canvas-container {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            background: #fafbfc;
+        }
+
+        /* Video Viewer */
+        .video-viewer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+            background: #000;
+        }
+
+        .video-viewer video {
+            max-width: 100%;
+            max-height: 70vh;
+        }
+
+        /* Audio Viewer */
+        .audio-viewer {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .audio-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .audio-viewer audio {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px 0;
+        }
+
+        /* Text Viewer */
+        .text-viewer {
+            padding: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            background: #f8f9fa;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 70vh;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .text-viewer code {
+            background: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        /* Unsupported Viewer */
+        .unsupported-viewer {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .unsupported-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .unsupported-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .unsupported-desc {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 30px;
+            max-width: 400px;
+        }
+
+        .unsupported-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #2563eb;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .viewer-container {
+                padding: 20px 10px;
+            }
+
+            .viewer-wrapper {
+                max-width: 100%;
+            }
+
+            .pdf-viewer {
+                height: 600px;
+            }
+
+            .image-viewer {
+                min-height: 300px;
+                padding: 20px;
+            }
+
+            .viewer-navbar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .navbar-left {
+                width: 100%;
+            }
+
+            .file-name {
+                max-width: 200px;
+                font-size: 14px;
+            }
+
+            .navbar-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .pdf-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="viewer-navbar">
+        <div class="navbar-left">
+            <button class="back-btn" onclick="goBack()">⬅️ Back</button>
+            <div class="file-info">
+                <span class="file-name" id="fileName">Loading...</span>
+                <span class="file-size" id="fileSize"></span>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <button class="download-btn" onclick="downloadFile()">⬇️ Download</button>
+            <button class="close-btn" onclick="closeViewer()">✕</button>
+        </div>
+    </div>
+
+    <!-- Viewer Container -->
+    <div class="viewer-container">
+        <div class="viewer-wrapper" id="viewerWrapper">
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <span>Loading file...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Initialize PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Get file info from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const filename = urlParams.get('filename');
+        const path = urlParams.get('path');
+        const fileSize = urlParams.get('size');
+
+        let currentFileType = null;
+        let pdfDoc = null;
+        let currentPage = 1;
+        let pdfZoom = 1;
+
+        // File type detection
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            
+            const types = {
+                image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff'],
+                pdf: ['pdf'],
+                video: ['mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'flv'],
+                audio: ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'wma', 'opus'],
+                text: ['txt', 'md', 'json', 'xml', 'html', 'css', 'js', 'py', 'java', 'cpp', 'c', 'rb', 'php', 'sql', 'log', 'csv', 'yaml', 'yml', 'toml', 'ini', 'env']
+            };
+
+            for (const [type, exts] of Object.entries(types)) {
+                if (exts.includes(ext)) return type;
+            }
+            return 'unsupported';
+        }
+
+        // Initialize viewer
+        function initViewer() {
+            if (!filename) {
+                showError('No file specified');
+                return;
+            }
+
+            document.getElementById('fileName').textContent = decodeURIComponent(filename);
+            if (fileSize) {
+                document.getElementById('fileSize').textContent = fileSize;
+            }
+
+            currentFileType = getFileType(filename);
+
+            const previewUrl = `/preview?filename=${encodeURIComponent(filename)}&path=${encodeURIComponent(path || '')}`;
+
+            switch (currentFileType) {
+                case 'image':
+                    loadImageViewer(previewUrl);
+                    break;
+                case 'pdf':
+                    loadPdfViewer(previewUrl);
+                    break;
+                case 'video':
+                    loadVideoViewer(previewUrl);
+                    break;
+                case 'audio':
+                    loadAudioViewer(previewUrl);
+                    break;
+                case 'text':
+                    loadTextViewer(previewUrl);
+                    break;
+                default:
+                    loadUnsupportedViewer();
+            }
+        }
+
+        // Image Viewer
+        function loadImageViewer(url) {
+            const html = `
+                <div class="image-viewer">
+                    <img src="${url}" alt="Image Preview" onerror="showError('Failed to load image')">
+                </div>
+            `;
+            document.getElementById('viewerWrapper').innerHTML = html;
+        }
+
+        // PDF Viewer
+        function loadPdfViewer(url) {
+            const html = `
+                <div class="pdf-viewer">
+                    <div class="pdf-controls">
+                        <button onclick="previousPdfPage()" id="prevBtn">⬅️ Previous</button>
+                        <span class="pdf-page-info">Page <span id="pageNum">1</span> of <span id="pageCount">?</span></span>
+                        <input type="number" id="pageInput" min="1" value="1" style="width: 60px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;" onchange="goToPdfPage()">
+                        <button onclick="nextPdfPage()" id="nextBtn">Next ➡️</button>
+                        <div class="pdf-zoom-controls">
+                            <button onclick="zoomPdf(-0.2)">🔍-</button>
+                            <span id="zoomLevel">100%</span>
+                            <button onclick="zoomPdf(0.2)">🔍+</button>
+                        </div>
+                        <div style="flex: 1;"></div>
+                        <span style="font-size: 12px; color: #6b7280;">Loading PDF...</span>
+                    </div>
+                    <div class="pdf-canvas-container">
+                        <canvas id="pdfCanvas"></canvas>
+                    </div>
+                </div>
+            `;
+            document.getElementById('viewerWrapper').innerHTML = html;
+            loadPdf(url);
+        }
+
+        // Video Viewer
+        function loadVideoViewer(url) {
+            const html = `
+                <div class="video-viewer">
+                    <video controls style="width: 100%; max-width: 100%;">
+                        <source src="${url}" type="video/mp4">
+                        <source src="${url}" type="video/webm">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            `;
+            document.getElementById('viewerWrapper').innerHTML = html;
+        }
+
+        // Audio Viewer
+        function loadAudioViewer(url) {
+            const html = `
+                <div class="audio-viewer">
+                    <div class="audio-icon">🎵</div>
+                    <h2 style="color: white; margin-bottom: 30px;">${decodeURIComponent(filename)}</h2>
+                    <audio controls style="width: 100%; max-width: 500px;">
+                        <source src="${url}">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            `;
+            document.getElementById('viewerWrapper').innerHTML = html;
+        }
+
+        // Text Viewer
+        function loadTextViewer(url) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to load text');
+                    return response.text();
+                })
+                .then(text => {
+                    const html = `<div class="text-viewer">${escapeHtml(text)}</div>`;
+                    document.getElementById('viewerWrapper').innerHTML = html;
+                })
+                .catch(error => {
+                    showError('Failed to load text file: ' + error.message);
+                });
+        }
+
+        // PDF Functions
+        function loadPdf(url) {
+            pdfjsLib.getDocument(url).promise.then(doc => {
+                pdfDoc = doc;
+                document.getElementById('pageCount').textContent = pdfDoc.numPages;
+                renderPdfPage(1);
+            }).catch(error => {
+                showError('Failed to load PDF: ' + error.message);
+            });
+        }
+
+        function renderPdfPage(pageNum) {
+            if (!pdfDoc) return;
+
+            pageNum = Math.max(1, Math.min(pageNum, pdfDoc.numPages));
+            currentPage = pageNum;
+
+            pdfDoc.getPage(pageNum).then(page => {
+                const scale = pdfZoom || 1.5;
+                const viewport = page.getViewport({ scale });
+                const canvas = document.getElementById('pdfCanvas');
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                page.render(renderContext).promise.then(() => {
+                    document.getElementById('pageNum').textContent = pageNum;
+                    document.getElementById('pageInput').value = pageNum;
+                    document.getElementById('prevBtn').disabled = pageNum === 1;
+                    document.getElementById('nextBtn').disabled = pageNum === pdfDoc.numPages;
+                });
+            });
+        }
+
+        function nextPdfPage() {
+            if (pdfDoc && currentPage < pdfDoc.numPages) {
+                renderPdfPage(currentPage + 1);
+            }
+        }
+
+        function previousPdfPage() {
+            if (currentPage > 1) {
+                renderPdfPage(currentPage - 1);
+            }
+        }
+
+        function goToPdfPage() {
+            const page = parseInt(document.getElementById('pageInput').value) || 1;
+            renderPdfPage(page);
+        }
+
+        function zoomPdf(delta) {
+            pdfZoom = Math.max(0.5, Math.min(3, pdfZoom + delta));
+            document.getElementById('zoomLevel').textContent = Math.round(pdfZoom * 100) + '%';
+            renderPdfPage(currentPage);
+        }
+
+        // Unsupported Viewer
+        function loadUnsupportedViewer() {
+            const ext = filename.split('.').pop().toUpperCase();
+            const html = `
+                <div class="unsupported-viewer">
+                    <div class="unsupported-icon">📁</div>
+                    <div class="unsupported-title">File type not supported</div>
+                    <p class="unsupported-desc">Files with extension <strong>.${ext}</strong> cannot be previewed in the browser. You can download the file instead.</p>
+                    <div class="unsupported-actions">
+                        <button class="action-btn" onclick="downloadFile()">⬇️ Download File</button>
+                        <button class="action-btn" onclick="goBack()" style="background: #6b7280;">⬅️ Go Back</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('viewerWrapper').innerHTML = html;
+        }
+
+        // Utilities
+        function showError(message) {
+            const html = `
+                <div class="unsupported-viewer">
+                    <div class="unsupported-icon">⚠️</div>
+                    <div class="unsupported-title">Error</div>
+                    <p class="unsupported-desc">${message}</p>
+                    <button class="action-btn" onclick="goBack()">⬅️ Go Back</button>
+                </div>
+            `;
+            document.getElementById('viewerWrapper').innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function downloadFile() {
+            const downloadUrl = `/download?filename=${encodeURIComponent(filename)}&path=${encodeURIComponent(path || '')}`;
+            window.location.href = downloadUrl;
+        }
+
+        function goBack() {
+            const pathParam = path ? `?path=${encodeURIComponent(path)}` : '';
+            window.location.href = `${window.location.origin}/${pathParam}`;
+        }
+
+        function closeViewer() {
+            goBack();
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initViewer);
+        
+        // Also try to init immediately in case of caching
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initViewer);
+        } else {
+            initViewer();
+        }
+    </script>
+</body>
+</html>
